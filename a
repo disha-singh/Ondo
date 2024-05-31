@@ -1,0 +1,220 @@
+"use client";
+import Header from "@/components/Header";
+import { useState } from "react";
+
+export default function Home() {
+  // State variables to manage form inputs
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [completionEvidenceType, setCompletionEvidenceType] = useState("");
+  const [accountabilityPartners, setAccountabilityPartners] = useState([]);
+
+  const [goals, setGoals] = useState([]);
+
+  // Function to handle form submission
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await fetch("/api/goals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          deadline,
+          completionEvidenceType,
+          accountabilityPartners,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add goal");
+      }
+
+      const data = await response.json();
+
+      // Update the goals state using the functional form of setGoals
+      setGoals((prevGoals) => [...prevGoals, data.goal]);
+
+      // Reset form fields after successful submission
+      setTitle("");
+      setDescription("");
+      setDeadline("");
+      setCompletionEvidenceType("");
+      setAccountabilityPartners([]);
+    } catch (error) {
+      console.error("Error adding goal:", error);
+    }
+  };
+
+  // Function to handle search
+  const handleSearch = (query) => {
+    // Here you can implement search logic based on the query
+    console.log("Search query:", query);
+    // Example: Filtering goals based on title containing the query
+    const filteredGoals = goals.filter((goal) =>
+      goal.title.toLowerCase().includes(query.toLowerCase())
+    );
+    console.log("Filtered goals:", filteredGoals);
+  };
+
+  return (
+    <>
+      <Header />
+
+      {/* Search Bar */}
+      <div className="container bg-grey mx-auto py-4">
+        <div className="max-w-4xl mx-auto">
+          <input
+            type="text"
+            className="w-full px-4 py-2 border rounded-md"
+            placeholder="Search goals..."
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="container my-8 mx-auto">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Add Task</h1>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label
+                htmlFor="title"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Title
+              </label>
+              <input
+                type="text"
+                id="title"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter title"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="description"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Description
+              </label>
+              <textarea
+                id="description"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter description"
+                required
+              ></textarea>
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="deadline"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Deadline
+              </label>
+              <input
+                type="datetime-local"
+                id="deadline"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="completionEvidenceType"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Completion Evidence Type
+              </label>
+              <select
+                id="completionEvidenceType"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={completionEvidenceType}
+                onChange={(e) => setCompletionEvidenceType(e.target.value)}
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="video">Video</option>
+                <option value="image">Image</option>
+                <option value="message">Message</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="accountabilityPartners"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Accountability Partners
+              </label>
+              <input
+                type="text"
+                id="accountabilityPartners"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={accountabilityPartners}
+                onChange={(e) =>
+                  setAccountabilityPartners(e.target.value.split(","))
+                }
+                placeholder="Enter accountability partners' usernames separated by comma"
+                required
+              />
+            </div>
+            <div className="flex items-center justify-left">
+              <button
+                onClick={handleSubmit}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit"
+              >
+                Add Task
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Goals Table */}
+      <div className="container bg-grey mx-auto mt-8">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xl font-bold mb-4">Goals</h2>
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Title</th>
+                <th className="px-4 py-2">Description</th>
+                <th className="px-4 py-2">Deadline</th>
+                <th className="px-4 py-2">Completion Evidence Type</th>
+                <th className="px-4 py-2">Accountability Partners</th>
+              </tr>
+            </thead>
+            <tbody>
+              {goals.map((goal, index) => (
+                <tr key={index}>
+                  <td className="border px-4 py-2">{goal.title}</td>
+                  <td className="border px-4 py-2">{goal.description}</td>
+                  <td className="border px-4 py-2">{goal.deadline}</td>
+                  <td className="border px-4 py-2">
+                    {goal.completionEvidenceType}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {goal.accountabilityPartners.join(", ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
